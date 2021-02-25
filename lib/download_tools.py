@@ -8,7 +8,10 @@ def download():
     'dirsearch' : 'https://github.com/maurosoria/dirsearch/archive/v0.4.0.zip',
     'oneforall' :  'https://github.com/shmilylty/OneForAll/archive/v0.4.3.zip',
     }
-
+    
+    if not os.path.exists(TOOLS_DIR):
+        os.makedirs(TOOLS_DIR)
+        
     os.chdir(TOOLS_DIR)
 
     #download
