@@ -23,7 +23,7 @@ class Nmap(Report):
             return self.get_http_ports(f)
 
     def get_http_ports(self,text):
-        http_ports = re.findall('\d{1,5}/tcp\s{1,}open\s{1,}[ssl/]*http', a)
+        http_ports = re.findall('\d{1,5}/tcp\s{1,}open\s{1,}[ssl/]*http', text)
         http_ports = [x.split("/")[0] for x in http_ports]
 
         if '80' in http_ports and '443' in http_ports:
