@@ -27,6 +27,7 @@ class Controller():
 
                 open_ports = masscan.Masscan(ip).open_ports
                 if not open_ports or len(open_ports) > 20:
+                    self.url_scan(http_url)
                     continue
 
                 http_open_ports = nmap.Nmap(url_parse(http_url).get_netloc(),open_ports).http_open_ports        #use domain not ip in order to report
@@ -37,7 +38,7 @@ class Controller():
                         self.url_scan(http_url_with_port)
 
                 else:
-                    print("not found http server port at : ",http_url)
+                    print("nmap not found http server port at : ",http_url)
             else:
                 self.url_scan(http_url)
 

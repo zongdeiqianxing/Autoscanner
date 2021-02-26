@@ -1,0 +1,165 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+
+<html lang="zh-CN" xml:lang="zh-CN" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type"/>
+<title>tools-scan report </title>
+<style type="text/css"> 
+        <!-- 
+        * { margin:0; padding:0; font-size:12px; font-weight:normal; } 
+        .jj  { font-weight:bolder!important; } 
+        .box { border-top-color:#c00!important; } 
+        .pr { color:#060!important; } 
+
+        #tab03 { position:relative; width:200px; margin:20px; }
+        #tab03 h3 { position:relative; z-index:1; height:16px; padding-top:4px; margin-bottom:-1px; border:solid #ccc; border-width:1px 0 1px 1px; text-align:center; font-family:宋体; background:#eee; cursor:pointer; } 
+        #tab03 h3.up { z-index:3; color:#c00; background:#fff; } 
+        #tab03 div.tab { display:none; position:absolute; left:250px; top:0; z-index:2; width:auto; height:auto; padding:5px; border:solid 1px #ccc; color:#266; }
+        #tab03 div.tab.up { display:block;border:0px } 
+        --> 
+        </style>
+</head>
+<body>
+<div id="tab03">
+<h3 class="box">http://testphp.vulnweb.com</h3><div class="tab"><pre>WHATWEB SCAN:
+http://testphp.vulnweb.com [200 OK] ActiveX[D27CDB6E-AE6D-11cf-96B8-444553540000]
+ Adobe-Flash
+ Country[UNITED STATES][US]
+ Email[wvs@acunetix.com]
+ HTTPServer[nginx/1.19.0]
+ IP[18.192.172.30]
+ Object[http://download.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=6
+0
+29
+0][clsid:D27CDB6E-AE6D-11cf-96B8-444553540000]
+ PHP[5.6.40-38+ubuntu20.04.1+deb.sury.org+1]
+ Script[text/JavaScript]
+ Title[Home of Acunetix Art]
+ X-Powered-By[PHP/5.6.40-38+ubuntu20.04.1+deb.sury.org+1]
+ nginx[1.19.0]
+
+
+
+
+
+crawlergo report:
+crawlergo urls found:
+http://testphp.vulnweb.com/
+https://testphp.vulnweb.com/
+http://testphp.vulnweb.com/search.php?test=query
+http://testphp.vulnweb.com/search.php?test=query
+http://testphp.vulnweb.com/index.php
+http://testphp.vulnweb.com/categories.php
+http://testphp.vulnweb.com/artists.php
+http://testphp.vulnweb.com/disclaimer.php
+http://testphp.vulnweb.com/cart.php
+http://testphp.vulnweb.com/guestbook.php
+http://testphp.vulnweb.com/AJAX/index.php
+http://testphp.vulnweb.com/login.php
+http://testphp.vulnweb.com/userinfo.php
+http://testphp.vulnweb.com/privacy.php
+http://testphp.vulnweb.com/Mod_Rewrite_Shop/
+http://testphp.vulnweb.com/hpp/
+http://testphp.vulnweb.com/hpp/?pp=12
+http://testphp.vulnweb.com/search.php?test=query
+http://testphp.vulnweb.com/listproducts.php?cat=1
+http://testphp.vulnweb.com/artists.php?artist=1
+http://testphp.vulnweb.com/Mod_Rewrite_Shop/Details/network-attached-storage-dlink/1/
+http://testphp.vulnweb.com/Mod_Rewrite_Shop/Details/web-camera-a4tech/2/
+http://testphp.vulnweb.com/Mod_Rewrite_Shop/Details/color-printer/3/
+http://testphp.vulnweb.com/userinfo.php
+http://testphp.vulnweb.com/signup.php
+http://testphp.vulnweb.com/hpp/params.php?
+http://testphp.vulnweb.com/hpp/params.php?aaaa%2F=Submit
+http://testphp.vulnweb.com/hpp/params.php?p=valid&amp;pp=12
+http://testphp.vulnweb.com/userinfo.php
+http://testphp.vulnweb.com/listproducts.php?artist=1
+http://testphp.vulnweb.com/Mod_Rewrite_Shop/BuyProduct-1/
+http://testphp.vulnweb.com/Mod_Rewrite_Shop/RateProduct-1.html
+http://testphp.vulnweb.com/showimage.php?file=./pictures/1.jpg&amp;size=160
+http://testphp.vulnweb.com/product.php?pic=1
+http://testphp.vulnweb.com/showimage.php?file=./pictures/1.jpg
+http://testphp.vulnweb.com/Mod_Rewrite_Shop/BuyProduct-3/
+http://testphp.vulnweb.com/userinfo.php
+http://testphp.vulnweb.com/secured/newuser.php
+http://testphp.vulnweb.com/secured/newuser.php
+http://testphp.vulnweb.com/cart.php
+http://testphp.vulnweb.com/secured/newuser.php
+
+
+crawlergo subdomains found:
+testphp.vulnweb.com</pre></div>
+<h3 class="box">end</h3><div class="tab"><pre>sign</pre></div>
+</div>
+<script type="text/javascript"> 
+        <!-- 
+        function Pid(id,tag){ 
+            if(!tag){ 
+                return document.getElementById(id); 
+                } 
+            else{ 
+                return document.getElementById(id).getElementsByTagName(tag); 
+                } 
+        } 
+        // 选项卡 - [id],[hx=标题],[box=容器标记],[iClass=容器样式],[s=事件],[pr=序列] 
+        function tab(id,hx,box,iClass,s,pr){ 
+            var hxs=Pid(id,hx); 
+            var boxs=Pid(id,box); 
+            if(!iClass){ // 如果不指定class，则： 
+                boxsClass=boxs; // 直接使用box作为容器 
+            } 
+            else{ // 如果指定class，则： 
+                var boxsClass = []; 
+                for(i=0;i<boxs.length;i++){ 
+                    if(boxs[i].className.match(/\btab\b/)){// 判断容器的class是否匹配 
+                        boxsClass.push(boxs[i]); 
+                    } 
+                } 
+            } 
+            if(!pr){ // 如果不指定预展开容器，则： 
+                go_to(0); // 默认展开序列 
+                yy(); 
+            } 
+            else { 
+                go_to(pr); 
+                yy(); 
+            } 
+            function yy(){ 
+                for(var i=0;i<hxs.length;i++){ 
+                    hxs[i].temp=i; 
+                    if(!s){// 如果不指定事件，则： 
+                        s="onmouseover"; // 使用默认事件 
+                        hxs[i][s]=function(){ 
+                            go_to(this.temp); 
+                        } 
+                    } 
+                    else{ 
+                        hxs[i][s]=function(){ 
+                            go_to(this.temp); 
+                        } 
+                    } 
+                } 
+            } 
+            function go_to(pr){ 
+                for(var i=0;i<hxs.length;i++){ 
+                    if(!hxs[i].tmpClass){ 
+                        hxs[i].tmpClass=hxs[i].className+=" pr1984_com"; 
+                        boxsClass[i].tmpClass=boxsClass[i].className+=" pr1984_com"; 
+                    } 
+                    if(pr==i){ 
+                        hxs[i].className+=" up"; // 展开状态：标题 
+                        boxsClass[i].className+=" up"; // 展开状态：容器 
+                    } 
+                    else { 
+                        hxs[i].className=hxs[i].tmpClass; 
+                        boxsClass[i].className=boxsClass[i].tmpClass; 
+                    } 
+                } 
+            } 
+        } 
+        tab("tab03","h3","div","tab"); // 使用div.tab为容器，默认事件，默认序列。 
+        //--> 
+        </script>
+</body>
+</html>
