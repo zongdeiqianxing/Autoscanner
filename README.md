@@ -1,4 +1,6 @@
 # AutoScanner
+## 由于dirsearch进行了一个版本更新，使得项目调用dirsearch时会报错误；所以导致项目暂时会出现bug，本人已反馈dirsearch并且在本项目中调试，请等待 
+
 ## AutoScanner是什么
 AutoScanner是一款自动化扫描器，其功能主要是遍历所有子域名、及遍历主机所有端口寻找出所有http服务，并使用集成的工具进行扫描，最后集成扫描报告；  
 工具目前有：oneforall、masscan、nmap、crawlergo、dirsearch、xray、awvs、whatweb等  

@@ -12,7 +12,7 @@ class Dirsearch(Report):
         self.scan()
 
     def scan(self):
-        command = 'python3 {}/dirsearch/dirsearch.py -e * -x 301,403,404,405,500,501,502,503 -u {} --plain-text-report={}'.format(TOOLS_DIR,self.target,self.LOG)
+        command = 'python3 {}/dirsearch/dirsearch.py -e * -x 301,403,404,405,500,501,502,503 -u {} --plain-text-report {}'.format(TOOLS_DIR,self.target,self.LOG)
         with Run(command,self.LOG,delete_file=False) as f:
             if os.path.exists(self.LOG):
                 self.report_insert(self.LOG,"DIRSEARCH SCAN:",)
