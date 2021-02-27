@@ -1,0 +1,3 @@
+[console_scripts]
+exrex = exrex:__main__
+

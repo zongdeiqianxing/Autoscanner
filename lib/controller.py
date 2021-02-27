@@ -1,7 +1,6 @@
 import os
 import time
 from lib.general import url_parse,get_ip_from_url
-from lib.record import Record
 from lib.scanner import xray,crawlergo,nmap,masscan,dirsearch,awvs,request_engine,whatweb
 
 class Controller():

@@ -1,0 +1,32 @@
+Metadata-Version: 1.1
+Name: fire
+Version: 0.3.1
+Summary: A library for automatically generating command line interfaces.
+Home-page: https://github.com/google/python-fire
+Author: David Bieber
+Author-email: dbieber@google.com
+License: Apache Software License
+Description: Python Fire is a library for automatically generating command line interfaces
+        (CLIs) with a single line of code.
+        
+        It will turn any Python module, class, object, function, etc. (any Python
+        component will work!) into a CLI. It's called Fire because when you call Fire(),
+        it fires off your command.
+Keywords: command line interface cli python fire interactive bash tool
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: Intended Audience :: Developers
+Classifier: Topic :: Software Development :: Libraries :: Python Modules
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5
+Classifier: Programming Language :: Python :: 3.6
+Classifier: Programming Language :: Python :: 3.7
+Classifier: Operating System :: OS Independent
+Classifier: Operating System :: POSIX
+Classifier: Operating System :: MacOS
+Classifier: Operating System :: Unix

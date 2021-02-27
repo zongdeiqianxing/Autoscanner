@@ -1,0 +1,24 @@
+Metadata-Version: 1.1
+Name: exrex
+Version: 0.10.5
+Summary: Irregular methods for regular expressions
+Home-page: https://github.com/asciimoo/exrex
+Author: Adam Tauber
+Author-email: asciimoo@gmail.com
+License: AGPLv3+
+Download-URL: https://github.com/asciimoo/exrex/tarball/master
+Description: UNKNOWN
+Keywords: regexp generators string generation regex simplification
+Platform: UNKNOWN
+Classifier: Development Status :: 4 - Beta
+Classifier: Topic :: Utilities
+Classifier: Environment :: Console
+Classifier: License :: OSI Approved :: GNU Affero General Public License v3
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.6
+Classifier: Programming Language :: Python :: 2.7
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.3
+Classifier: Programming Language :: Python :: 3.4
+Classifier: Programming Language :: Python :: 3.5

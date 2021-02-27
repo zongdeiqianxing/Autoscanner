@@ -5,7 +5,7 @@ def download():
     tools = {
     'xray' : "https://download.xray.cool/xray/1.7.0/xray_linux_amd64.zip?download=true",
     'crawlergo' : 'https://github.com/0Kee-Team/crawlergo/releases/download/v0.4.0/crawlergo_linux_amd64.zip',
-    'dirsearch' : 'https://github.com/maurosoria/dirsearch/archive/v0.4.0.zip',
+    'dirsearch' : 'https://github.com/maurosoria/dirsearch/archive/v0.4.1.zip',
     'oneforall' :  'https://github.com/shmilylty/OneForAll/archive/v0.4.3.zip',
     }
 
