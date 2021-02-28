@@ -1,1 +1,1 @@
-docker run -ti -v `pwd`/:/root/ auto:latest -u http://testphp.vulnweb.com
+docker run -ti --rm -v `pwd`/:/root/ auto:latest --fu 1.url

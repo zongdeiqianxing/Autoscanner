@@ -15,7 +15,7 @@ class ArgumentParser():
             self.urlList = OneForAll(options.domain).scan()
 
         elif options.urlsFile:
-            self.urlList = get_file_content(options.urls_file)
+            self.urlList = get_file_content(options.urlsFile)
 
         elif options.domainsFile:
             self.urlList = self.get_domainsFile_urls(get_file_content(options.domains_file))

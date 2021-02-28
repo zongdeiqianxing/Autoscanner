@@ -80,7 +80,7 @@ def get_file_content(file_path):
     urlList = []
     with open(file_path,'r') as f:
         for line in f.readlines():
-            urlList.append(line)
+            urlList.append(line.strip())
     return urlList
 
 

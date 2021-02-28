@@ -46,7 +46,8 @@ class Controller():
         whatweb.Whatweb(target)
 
         c = crawlergo.Crawlergo(target)
-        if not c.sub_domains:                                        #将crawlergo扫描出的子域名添加到任务清单中
+        if c.sub_domains:                                        #将crawlergo扫描出的子域名添加到任务清单中
+            print("crawlergo found domains : ",c.sub_domains)
             for domains in c.sub_domains:
                 if domains not in self.arguments.urlList:
                     self.arguments.urlList.append(domains)
