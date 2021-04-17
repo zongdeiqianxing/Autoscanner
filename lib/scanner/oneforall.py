@@ -6,7 +6,9 @@ import csv
 class OneForAll():
     def __init__(self,target):
         self.target = target
-
+        
+        if os.path.exists(os.path.join(TOOLS_DIR, 'OneForAll')):
+            os.system('cp -r {path}/OneForAll/ {path}/oneforall/'.format(path=TOOLS_DIR))
 
     def scan(self):
         print("Brute domain: " + self.target)
