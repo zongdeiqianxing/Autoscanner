@@ -1,5 +1,9 @@
 tools
 docker_run.sh
+config.yaml
+ca.key
+ca.crt
+.DS_Store
 .idea
 .git
 .idea
