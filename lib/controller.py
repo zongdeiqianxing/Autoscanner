@@ -111,7 +111,7 @@ class Controller():
                         continue
 
                 # 域名当作url先扫描
-                yield url_parse(domains).get_http_url()
+                yield url_parse(url).get_http_url()
 
                 # 遍历子域名并扫描
                 domains_list = OneForAll(url).scan()
@@ -120,8 +120,6 @@ class Controller():
                     http_url = url_parse(domains).get_http_url()  #
                     yield http_url
                     continue
-
-
 
     def init_report(self):
         from .setting import TEMPLATE_FILE
