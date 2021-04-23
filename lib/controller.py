@@ -86,6 +86,7 @@ class Controller():
 
             else:
                 # 判断域名是否已经扫描过，包括含有http这类的链接
+                scanned_status = False
                 compile = '^[http://|https://]*' + url + '$'
                 for u in self.scanned_domains:
                     if re.findall(compile,u):
@@ -98,16 +99,21 @@ class Controller():
 
                 # 判断是否是二级域名，
                 if url.count('.') >= 2:
+                    is_subdomain = True
                     for suffix in [".com.cn", ".edu.cn", ".net.cn", ".org.cn", ".co.jp",".gov.cn", ".co.uk", "ac.cn",]:
                         if suffix in url :
                             is_subdomain = False
                             break
 
-                # 二级域名的话跳过，不再爆破三级域名
-                if is_subdomain :
-                    yield url_parse(url).get_http_url()
-                    continue
+                    # 二级域名的话跳过，不再爆破三级域名
+                    if is_subdomain :
+                        yield url_parse(url).get_http_url()
+                        continue
 
+                # 域名当作url先扫描
+                yield url_parse(domains).get_http_url()
+
+                # 遍历子域名并扫描
                 domains_list = OneForAll(url).scan()
                 domains_list = sorted(set(domains_list), key=domains_list.index)  # 去重 保持顺序
                 for domains in domains_list:
