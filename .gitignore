@@ -1,0 +1,10 @@
+tools
+.idea
+.git
+.idea
+.local
+venv
+report
+test.py
+test2.py
+

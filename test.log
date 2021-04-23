@@ -1,0 +1,8 @@
+2021-04-23 11:00:28,946 - mylogger - INFO - test info
+2021-04-23 11:00:28,946 - mylogger - ERROR - error
+2021-04-23 11:00:28,946 - mylogger - INFO - test
+2021-04-23 11:03:05,981 - mylogger - INFO - test
+2021-04-23 13:10:15,819 - mylogger - INFO - test
+2021-04-23 13:10:32,287 - mylogger - INFO - test
+2021-04-23 13:12:43,650 - mylogger - INFO - test
+2021-04-23 13:25:46,229 - mylogger - INFO - test
