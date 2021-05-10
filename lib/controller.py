@@ -87,7 +87,7 @@ class Controller():
             else:
                 # 判断域名是否已经扫描过，包括含有http这类的链接
                 scanned_status = False
-                compile = '^[http://|https://]*' + url + '$'
+                compile = '^[http://|https://]*' + url
                 for u in self.scanned_domains:
                     if re.findall(compile,u):
                         print("{} had in scanned_domains list .".format(url))
