@@ -1,12 +1,18 @@
 from optparse import OptionParser, OptionGroup
 from IPy import IP
 import os
+import time
 from .general import *
 from lib.scanner.oneforall import OneForAll
 
 class ArgumentParser():
     def __init__(self,):
+        self.args = self.parseArguments()
         options = self.parseArguments()
+
+        if options.restore:
+            print("restore模式，从上次中断处重新开始扫描中")
+            time.sleep(1)
 
         if options.url:
             self.urlList = [options.url]
@@ -19,6 +25,11 @@ class ArgumentParser():
 
         elif options.domainsFile:
             self.urlList = get_file_content(options.domains_file)
+
+        elif options.qccFile:    #企查查的文件
+            print("读取qichacha文件并扫描：")
+            time.sleep(1)
+            self.urlList = read_xls(options.qccFile).domains
 
         elif options.domainsFileFromQichacha:
             self.urlList = get_domains_from_qichacha_xlsx(options.domainsFileFromQichacha)
@@ -33,11 +44,6 @@ class ArgumentParser():
             exit("need a target input")
 
         print("urlList:",self.urlList)
-
-        if options.restore:
-            self.restore = True
-        else :
-            self.restore = False
 
         self.toolList = []
         if options.tools:
@@ -54,10 +60,12 @@ class ArgumentParser():
         mandatory.add_option("-d", "--domain", help="Target domain", action="store", type="string", dest="domain", default=None)
         mandatory.add_option("--fu", help="Target URLS from file", action="store", type="string", dest="urlsFile", default=None)
         mandatory.add_option("--fd", help="Target domains from file", action="store", type="string", dest="domainsFile", default=None)
-        mandatory.add_option("--fdq", help="Target domains from file of qichacha", action="store", type="string", dest="domainsFileFromQichacha",default=None)
+        mandatory.add_option("--fq", help="Target domains from file of qichacha", action="store",type='string',dest="qccFile", default=None)
         mandatory.add_option("--cidr", help="Target cidr", action="store", type="string", dest="cidr", default=None)
 
-        mandatory.add_option("-r","--restore",action="store_true",dest="restore",help="restore scan")
+        arg = OptionGroup(parser, "arg")
+        arg.add_option("-r","--restore",action="store_true",dest="restore",default=False)
+        arg.add_option("-f", "--fast", action="store_true", dest="fastscan", default=False,help="url scan only")
 
         tools = OptionGroup(parser, "tools")
         tools.add_option("-t", "--tools", help="select tools run", action="store", dest="tools", default="dirsearch,")
