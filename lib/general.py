@@ -2,45 +2,39 @@ import os
 from urllib.parse import urlparse
 import socket
 import json
+import xlrd
 
-def get_domains_from_qichacha_xlsx(file):
-    try:
-        import openpyxl
-    except:
-        os.system('pip3 install openpyxl')
-        import openpyxl
-    finally:
-        import itertools
+class read_xls():
+    def __init__(self,file):
+        self.base_str = list('abcdefghijklmnopqrstuvwxyz.-_')
+        self.domains = self.read_xls(file)
 
-    try:
-        wb = openpyxl.load_workbook(file)
-        sheets = wb.get_sheet_names()
-        print(sheets)
+    def read_xls(self,file):
+        try:
+            workbook = xlrd.open_workbook(file)
+            sheet1 = workbook.sheet_by_index(0)
+            column = sheet1.col_values(3)
+        except exception as e:
+            exit(e)
+        return  self.filter(column)
 
-        base_str = list('abcdefghijklmnopqrstuvwxyz.-_')
+    def filter(self,domains):
+        domains_filterd = []
+        for domain in domains:
+            if domain is None:
+                break
 
-        for i in range(len(sheets)):
-            sheet = wb.get_sheet_by_name(sheets[i])
-            print('\n\n第' + str(i + 1) + '个sheet: ' + sheet.title + '->>>')
+            if ';' in domain:
+                domain = domain.split(';')[0]
 
-            domains_list = []
-            for i in itertools.count(4, 1):
-                value = sheet.cell(row=i, column=4).value
-                if value is None:
-                    break
+            # 判断域名内容是否标准，比如是否存在中文
+            if not set(list(domain)) < set(self.base_str):
+                print('domain {} 不规范，忽略'.format(domain))
+                continue
 
-                if ';' in value:
-                    value = value.split(';')[0]
-
-                # 判断域名内容是否标准，比如是否存在中文
-                if not set(list(value)) < set(base_str):
-                    continue
-
-                domains_list.append(value)
-    except:
-        exit('open/parser {} error.'.format(file))
-
-    return domains_list
+            if not len(domain) < 3:
+                domains_filterd.append(domain)
+        return domains_filterd
 
 class Run():
     def __init__(self,command,logfile='',delete_file=True):
