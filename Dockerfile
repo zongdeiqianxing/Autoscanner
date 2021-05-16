@@ -24,7 +24,7 @@ WORKDIR /root/
 RUN ln -sf /usr/share/zoneinfo/$TZ /etc/localtime \
 && echo $TZ > /etc/timezone \
 && apt install -y python3 python3-pip masscan wget whatweb nmap nikto zip tzdata google-chrome-stable \
-&& pip3 install IPy simplejson requests bs4 prettytable func_timeout\
+&& pip3 install IPy simplejson requests bs4 prettytable func_timeout xlrd\
 && pip3 install -r requirements.txt
 
 ENTRYPOINT ["python3","main.py"]
