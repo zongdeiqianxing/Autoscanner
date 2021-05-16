@@ -10,7 +10,7 @@ class Controller():
         self.arguments = arguments
         self.scanned_domains = []
 
-        if self.arguments.restore:
+        if self.arguments.args.restore:
             exit("restore exit ")
 
     def assign_task(self):
@@ -21,6 +21,10 @@ class Controller():
 
         for http_url in self.format_url():
             print("scanning : ",http_url)
+
+            if self.arguments.args.fastscan:         # fastscan模式只web扫描，并且不重复添加扫描到的子域名
+                self.url_scan(http_url)
+                continue
 
             if http_url.count(":") < 2 and http_url.count("/") < 3 : # if like http://a.com:8080 or http://xx.com/1.php ,do self.url_scan()
                 ip = get_ip_from_url(http_url)
@@ -48,7 +52,7 @@ class Controller():
         whatweb.Whatweb(target)
 
         c = crawlergo.Crawlergo(target)
-        if c.sub_domains:                                        #将crawlergo扫描出的子域名添加到任务清单中
+        if c.sub_domains and not self.arguments.args.fastscan :                                        #将crawlergo扫描出的子域名添加到任务清单中
             print("crawlergo found domains : ",c.sub_domains)
             for domains in c.sub_domains:
                 if domains not in self.arguments.urlList:
