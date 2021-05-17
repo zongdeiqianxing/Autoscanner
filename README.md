@@ -22,6 +22,7 @@ AutoScanner是一款自动化扫描器，其功能主要是遍历所有子域名
 - 支持企查查导出资产一键扫描
 - 支持工具超时自动停止，防止程序卡死
 - 支持还原断点扫描
+- 支持所有扫描目标、扫描数据存入本地sqlite数据库，后续个人可调用
 - ...
 
 另外，在各个工具直接做了很多逻辑处理，如masscan扫描到过多开放端口，直接忽略；如nmap发现80和443同时开放http服务，忽略443；等等  
@@ -36,6 +37,32 @@ AutoScanner是一款自动化扫描器，其功能主要是遍历所有子域名
 - 执行`docker build -t auto .`构造镜像
 - 查看、修改、执行`./docker_run.sh`命令即可运行项目
 
+### 脚本参数
+脚本支持-u -d --fu --fd --fq -r -f等参数，其中fq参数是直接使用企查查的备案域名导出文件扫描，-r参数待上线
+
+#### 1 -u -d -f参数
+-u扫描url，-d扫描域名，注意这儿扫描中扫描到的子域名都会动态添加到扫描任务中，如不需要的化添加-f参数即可
+-f参数取自fastscan，使用-f时不会支持扫描到的域名动态添加到扫描列表中
+```
+docker run -ti --rm -v `pwd`/:/root/ auto:latest -u http://testphp.vulnweb.com
+docker run -ti --rm -v `pwd`/:/root/ auto:latest -u http://testphp.vulnweb.com -f
+```
+
+#### 2 --fu --fd 参数 
+这两个参数读取文件并扫描，区别就是url和域名的形式，写入时以换行符分隔即可
+```
+docker run -ti --rm -v `pwd`/:/root/ auto:latest --fu 1.txt
+```
+
+#### 3 --fq参数
+读取企查查导出的域名备案文件
+```
+docker run -ti --rm -v `pwd`/:/root/ auto:latest --fq 1.xls
+```
+![image](lib/images/keda.png)
+
+#### 4 -r参数
+支持断点恢复扫描功能，待上线
 
 
 ## 截图展示
