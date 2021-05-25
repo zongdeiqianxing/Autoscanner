@@ -37,17 +37,12 @@ class Xray():
         rows1 = os.popen(cmd).read()
         cmd = "tail -n 10 {}".format(self.LOG)
         s = os.popen(cmd).read()
-        if self.vuln_scaned == 1:
-            if rows0 == rows1 and "All pending requests have been scanned" in s:
-                print("rows:", rows0, rows1)
-                return True
-            else:
-                return False
+
+        if rows0 == rows1 and "All pending requests have been scanned" in s:
+            os.system('echo "" > {}'.format(self.LOG))
+            return True
         else:
-            if rows0 == rows1:
-                return True
-            else:
-                return False
+            return False
 
     def clear_previous_xray_log(self):
         if os.path.exists(self.LOG):
