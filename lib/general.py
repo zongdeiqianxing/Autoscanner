@@ -4,6 +4,7 @@ import socket
 import json
 import xlrd
 
+
 class read_xls():
     def __init__(self,file):
         self.base_str = list('abcdefghijklmnopqrstuvwxyz.-_')
@@ -14,7 +15,7 @@ class read_xls():
             workbook = xlrd.open_workbook(file)
             sheet1 = workbook.sheet_by_index(0)
             column = sheet1.col_values(3)
-        except exception as e:
+        except Exception as e:
             exit(e)
         return  self.filter(column)
 
