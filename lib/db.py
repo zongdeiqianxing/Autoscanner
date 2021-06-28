@@ -1,50 +1,54 @@
-from lib.setting import now_time
-from lib.general import path_build
 import sqlite3
+import os
 
-class db():
-    def __init__(self,sql, value=None, dbfile='scanned_info.db'):
-        self.db_path = path_build(dbfile)
-        self.sql = sql
-        self.value = self.replace_date(value)
-        self.date = now_time.replace('-','')
-        self.db = sqlite3.connect(self.db_path)
-        self.c = self.db.cursor()
+main_path = os.path.split(os.path.dirname(os.path.realpath(__file__)))[0]
 
 
-    def __enter__(self):
-        def run():
-            if self.value:
-                return self.c.execute(self.sql,self.value)
-            else:
-                return self.c.execute(self.sql)
+'''
+初试化表结构
+'''
+def db_init():
+    with sqlite3.connect('scanned_info.db') as conn:
+        conn.execute('''
+                                create table if not exists target_info (
+                                    id INTEGER PRIMARY KEY,
+                                    target text, 
+                                    oneforall text, 
+                                    crawlergo text,
+                                    batch_num integer, 
+                                    date timestamp not null default (datetime('now','localtime')))
+                                    ''')
 
-        try:
-            run()
-        except sqlite3.OperationalError as e:
-            try :
-                if 'no such table' in str(e):
-                    # target table
-                    self.c.execute('''
-                        create table if not exists target_info (
-                        id INTEGER PRIMARY KEY,input_target text, found_domains text, date integer)''')
-                    # scanned info
-                    self.c.execute('''
-                        create table if not exists scanned_info (
-                        id INTEGER PRIMARY KEY,domain text, date integer, crawlergo text, dirsearch text
-                        )''')
-                run()
-            except Exception as e:
-                print(e)
+        conn.execute('''
+                                create table if not exists host_info (
+                                    id INTEGER PRIMARY KEY,
+                                    domain text, 
+                                    nslookup text,
+                                    iplocation text,
+                                    masscan text,
+                                    nmap text, 
+                                    batch_num integer, 
+                                    date timestamp not null default (datetime('now','localtime')))
+                                    ''')
 
-    def __exit__(self, exc_type, exc_val, exc_tb):
-        self.db.commit()
-        self.db.close()
+        conn.execute('''
+                                create table if not exists scanned_info (
+                                    id INTEGER PRIMARY KEY,
+                                    domain text,
+                                    whatweb text,
+                                    crawlergo text, 
+                                    dirsearch text,
+                                    batch_num integer, 
+                                    date timestamp not null default (datetime('now','localtime'))
+                                )''')
 
 
-    def replace_date(self,value):
-        if 'date' in value:
-            v = list(value)
-            index = v.index('date')
-            v[index] = now_time
-            return  tuple(v)
+def db_insert(sql, *value):
+    with sqlite3.connect(os.path.join(main_path, 'scanned_info.db')) as conn:
+        conn.execute(sql, value)  # *value返回(1,) (1,2)这种元祖
+
+
+def db_update(table, name, text):
+    with sqlite3.connect(os.path.join(main_path, 'scanned_info.db')) as conn:
+        sql = 'update {table} set {column}=? order by id desc limit 1;'.format(table=table, column=name)
+        conn.execute(sql, (text,))

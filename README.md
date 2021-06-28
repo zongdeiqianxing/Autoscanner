@@ -1,73 +1,43 @@
 # AutoScanner
 
 ## AutoScanner是什么
-AutoScanner是一款自动化扫描器，其功能主要是遍历所有子域名、及遍历主机所有端口寻找出所有http服务，并使用集成的工具进行扫描，最后集成扫描报告；  
-工具目前有：oneforall、masscan、nmap、crawlergo、dirsearch、xray、awvs、whatweb等  
+AutoScanner是一款自动化扫描器，其功能功能分为两块：  
++ 1 遍历所有子域名、子域名主机所有端口及所有http端口服务
++ 2 对子域名主机信息进行相关检测，如cname解析判断是否是cdn、域名定位信息判断是否为云服务器、masscan扫端口、nmap等
++ 3 对http端口服务截图、使用集成的工具如crawlergo、xray、dirsearch等进行扫描；
++ 4 集成扫描报告
 
-是之前[hscan](https://www.freebuf.com/sectool/260394.html) 的重构版本；
+AutoScanner对工具之间的调用衔接做了很多处理，及对渗透测试的相关信息收集做了记录；具体信息看报告文件即可，
 
-
-## AutoScanner做了什么
-- 自动下载项目所需要的tools
-- 使用oneforall遍历子域名
-- 使用masscan遍历主机所有开放端口
-- 使用nmap扫描开放端口；得出所有http服务端口
-- 使用crawlergo进行扫描
-- 动态添加crawlergo扫描到的域名至任务清单
-- 使用dirsearch进行目录文件扫描
-- 扫描到的目录、文件传递到xray
-- 使用xray进行被动扫描
-- 扫描结束后生成两份报告，xray和 所有tools集成的一份报告
-
-- 支持企查查导出资产一键扫描
-- 支持工具超时自动停止，防止程序卡死
-- 支持还原断点扫描
-- 支持所有扫描目标、扫描数据存入本地sqlite数据库，后续个人可调用
-- ...
-
-另外，在各个工具直接做了很多逻辑处理，如masscan扫描到过多开放端口，直接忽略；如nmap发现80和443同时开放http服务，忽略443；等等  
-需要注意的是，项目中提供了awvs的扫描脚本，但是考虑到正版盗版的原因项目中未集成awvs的安装包；
 
 ## 项目运行
-由于涉及过多pip包依赖及浏览器环境等，建议使用docker运行；  
-其中注意项目所需要的工具会自动下载，但是由于国内github网速问题可能会导致下载失败等问题，如果发生，可下载下方包解压到tools目录；  
-链接: https://pan.baidu.com/s/1FAP02yYK7CF9mxMD0yj08g  密码: a6p4
+由于涉及过多工具、python包依赖及浏览器环境等，建议使用docker运行；  
 
-- 如工具是自动下载的话这步可以省略；如是百度云下载的话，将解压的tools目录放置项目主目录即main.py这一层；
-- 执行`docker build -t auto .`构造镜像
-- 查看、修改、执行`./docker_run.sh`命令即可运行项目
+### 0x01 工具下载
+二选一即可
+- 工具在执行docker时自动下载, (国内从github下载，可能非常慢)
+- 下载百度云,将解压的tools目录放置项目主目录即main.py这一层；
+    + 链接: https://pan.baidu.com/s/1FAP02yYK7CF9mxMD0yj08g  密码: a6p4
 
-### 脚本参数
-脚本支持-u -d --fu --fd --fq -r -f等参数，其中fq参数是直接使用企查查的备案域名导出文件扫描，-r参数待上线
+### 0x02 构建镜像
+- `docker build -t auto .`
 
-#### 1 -u -d -f参数
--u扫描url，-d扫描域名，注意这儿扫描中扫描到的子域名都会动态添加到扫描任务中，如不需要的化添加-f参数即可
--f参数取自fastscan，使用-f时不会支持扫描到的域名动态添加到扫描列表中
-```
-docker run -ti --rm -v `pwd`/:/root/ auto:latest -u http://testphp.vulnweb.com
-docker run -ti --rm -v `pwd`/:/root/ auto:latest -u http://testphp.vulnweb.com -f
-```
+### 0x03 执行项目
+- docker运行命令参数已放入docker_run.sh文件中，直接修改执行`./docker_run.sh`即可  
+- 其中支持参数为：
+    + -u url
+    + -d domain
+    + --fu 包含urls的文件
+    + --fd 包含domains的文件
+    + --fq 从企查查导出的企业备案域名xls文件
 
-#### 2 --fu --fd 参数 
-这两个参数读取文件并扫描，区别就是url和域名的形式，写入时以换行符分隔即可
-```
-docker run -ti --rm -v `pwd`/:/root/ auto:latest --fu 1.txt
-```
+### 0x04 报告查看
+- 执行`python3 -m http.server 80 --directory report/`, 在浏览器中输入地址即可
 
-#### 3 --fq参数
-读取企查查导出的域名备案文件
-```
-docker run -ti --rm -v `pwd`/:/root/ auto:latest --fq 1.xls
-```
-![image](lib/images/keda.png)
-
-#### 4 -r参数
-支持断点恢复扫描功能，待上线
 
 
 ## 截图展示
-部分截图可以看之前的[hscan](https://www.freebuf.com/sectool/260394.html)；
-这儿展示下单独的tools的报告
-![image](lib/images/1.png)
-![image](lib/images/2.png)
-![image](lib/images/3.png)
+![image](lib/img/1.png)
+![image](lib/img/2.png)
+![image](lib/img/3.png)
+

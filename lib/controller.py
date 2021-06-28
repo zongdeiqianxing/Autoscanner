@@ -1,147 +1,147 @@
 import os
-import time
-import re
-from lib.general import url_parse,get_ip_from_url
-from lib.scanner.oneforall import OneForAll
-from lib.scanner import xray,crawlergo,nmap,masscan,dirsearch,awvs,request_engine,whatweb
+import tempfile
+import sqlite3
+from lib.Tools import *
+from lib.urlParser import Parse
+from lib.report import Report
+from lib.db import db_insert
 
-class Controller():
-    def __init__(self,arguments):
-        self.arguments = arguments
-        self.scanned_domains = []
+class Controller:
+    def __init__(self, arguments):
+        self.urls_target = arguments.urlList
+        self.domains_target = arguments.domainList
+        self.logfile = tempfile.NamedTemporaryFile(delete=False).name
+        self.log = {}
+        self.xray = Xray()
 
-        if self.arguments.args.restore:
-            exit("restore exit ")
+        if arguments.tools:
+            self.toolsList = [tool for tool in arguments.tools.split(',')]
 
     def assign_task(self):
-        self.init_report()
+        def url_scan(urls_target):
+            if urls_target:
+                self.urls_target = sorted(set(self.urls_target), key=urls_target.index)
+                for _target in urls_target:
+                    db_insert('insert into target_info (target, batch_num) values (?,?);', _target, now_time)
+                    _target = Parse(_target)                  # return dict{ip,domain,http_url}
+                    if _target.data:
+                        db_insert('insert into scanned_info (domain, batch_num) values (?,?)', _target.data['http_url'], now_time)
+                        self.urls_scan(_target)
+                    Report().html_report_single()
 
-        self.xray = xray.Xray()
-        self.xray.scan()
+        self.xray.passive_scan()
 
-        for http_url in self.format_url():
-            print("scanning : ",http_url)
+        if self.urls_target:
+            url_scan(self.urls_target)
 
-            if self.arguments.args.fastscan:         # fastscan模式只web扫描，并且不重复添加扫描到的子域名
-                self.url_scan(http_url)
-                continue
+        if self.domains_target:
+            self.domains_target = sorted(set(self.domains_target), key=self.domains_target.index)
+            for domain in self.domains_target:
+                if not Parse.isIP(domain):
+                    if Parse(domain).data:      # 域名存在解析不成功的情况
+                        subdomains = self.subdomains_scan(Parse(domain).data['domain'])
+                        for subdomain in subdomains:
+                            target = Parse(subdomain)
+                            print(target)
+                            if target.data:
+                                db_insert('insert into host_info (domain, batch_num) values (?,?)', target.data['domain'], now_time)
+                                http_urls = self.ports_scan(target)
+                                url_scan(http_urls)
 
-            if http_url.count(":") < 2 and http_url.count("/") < 3 : # if like http://a.com:8080 or http://xx.com/1.php ,do self.url_scan()
-                ip = get_ip_from_url(http_url)
-                if not ip :
-                    continue
-
-                open_ports = masscan.Masscan(ip).open_ports
-                if not open_ports or len(open_ports) > 20:
-                    self.url_scan(http_url)
-                    continue
-
-                http_open_ports = nmap.Nmap(url_parse(http_url).get_netloc(),open_ports).http_open_ports        #use domain not ip in order to report
-
-                if http_open_ports:
-                    for port in http_open_ports:
-                        http_url_with_port = http_url + ":" + port
-                        self.url_scan(http_url_with_port)
                 else:
-                    print("nmap not found http server port at : ",http_url)
-            else:
-                self.url_scan(http_url)
+                    target = Parse(domain)
+                    db_insert('insert into host_info (domain, batch_num) values (?,?)', target.data['domain'], now_time)
+                    http_urls = self.ports_scan(target)
+                    url_scan(http_urls)
+
+    def subdomains_scan(self, target):
+        _ = "python3 oneforall/oneforall.py --target {target} run".format(path=tool_path, target=target)
+        logfile = '{path}/oneforall/results/{target}.csv'.format(path=tool_path, target=target)
+        oneforall = Oneforall(_, logfile)
+        return oneforall.data if oneforall.data else [target]
+
+    def ports_scan(self, target):
+        nslookup = Nslookup(target.data['domain'])
+
+        cdns = ['cdn', 'kunlun', 'bsclink.cn', 'ccgslb.com.cn', 'dwion.com', 'dnsv1.com', 'wsdvs.com', 'wsglb0.com', 'lxdns.com', 'chinacache.net.', 'ccgslb.com.cn', 'aliyun']
+        for cdn in cdns:
+            if cdn in nslookup.log:
+                print('maybe the {} is cdn'.format(target.data['domain']))
+                print(nslookup.log)
+                return [target.data['http_url']]
+
+        _ = "masscan --open -sS -Pn -p 1-20000 {target} --rate 2000".format(target=target.data['ip'])
+        masscan = Masscan(_, None)
+
+        '''
+        可能存在防火墙等设备,导致扫出的端口非常多
+        '''
+        if not masscan.data or len(masscan.data) > 20:
+            masscan.data = ['21', '22', '445', '80', '1433', '3306', '3389', '6379', '7001', '8080']
+
+        '''
+        nmap 如果80和443同时开放，舍弃443端口
+        '''
+        _ = "nmap -sS -Pn -A -p {ports} {target_ip} -oN {logfile}".format(ports=','.join(masscan.data), target_ip=target.data['ip'], logfile=self.logfile)
+        nmap = Nmap(_, self.logfile)
+        if nmap.data:
+            if 80 in nmap.data and 443 in nmap.data:
+                nmap.data.remove("443")
+            return ['{}:{}'.format(target.data['http_url'], port) for port in nmap.data]
+
+        return [target.data['http_url']]
+
+    def urls_scan(self, target):
+        # 主要查看组织， 是否是云服务器
+        iplocation = IpLocation(target.data['ip'])
+
+        _ = "whatweb --color never {}".format(target.data['http_url'])
+        whatweb = Whatweb(_)
+
+        # 截图
+        snapshot = Snapshot(target.data['http_url'])
+
+        '''
+        crawlergo
+        扫描出来的子域名动态添加到域名列表中
+        注意--push-to-proxy必须是http协议, 更换chrome为静态包执行不了
+        '''
+        _ = './crawlergo -c /usr/bin/google-chrome-stable -t 10 --push-to-proxy http://127.0.0.1:7777 -o json {}'.format(target.data['http_url'])
+        crawlergo = Crawlergo(_)
+
+        if crawlergo.data:
+            if self.domains_target:
+                self.domains_target += [domain for domain in crawlergo.data if domain not in self.domains_target]
+
+        '''
+        等待xray扫描结束，因为各类工具都是多线程高并发，不等待的话xray会一批红：timeout
+        '''
+        if crawlergo.log:
+            print('xray start scanning')
+            while True:
+                if self.xray.wait_xray_ok():
+                    break
+
+        '''
+        将dirsearch扫出的url添加到xray去
+        '''
+        _ = 'python3 dirsearch/dirsearch.py -x 301,302,403,404,405,500,501,502,503 --full-url -u {target} --csv-report {logfile}'.format(
+                    target=target.data['http_url'], logfile=self.logfile)
+        dirsearch = Dirsearch(_, self.logfile)
+
+        if dirsearch.data:
+            for url in dirsearch.data:
+                response = Request().repeat(url)
 
 
-    def url_scan(self,target):
-        whatweb.Whatweb(target)
 
-        c = crawlergo.Crawlergo(target)
-        if c.sub_domains and not self.arguments.args.fastscan :                                        #将crawlergo扫描出的子域名添加到任务清单中
-            print("crawlergo found domains : ",c.sub_domains)
-            for domains in c.sub_domains:
-                if domains not in self.arguments.urlList:
-                    self.arguments.urlList.append(domains)
 
-        time.sleep(5)
-        print("waiting xray scan to end")
-        while (True):                                                #wait for xray end scan
-            if self.xray.check_xray_status():
-                break
 
-        urls = dirsearch.Dirsearch(target).urls
-        if urls:
-            request = request_engine.Request()                      #repeat urls found by dirsearch to xray
-            for url in urls:
-                request.repeat(url)
-            time.sleep(5)
 
-        if "awvs" in self.arguments.toolList:
-            awvs.Awvs(target)
 
-        self.scanned_domains.append(target)
 
-    # 使用oneforall遍历子域名
-    def format_url(self):
-        for url in self.arguments.urlList:
-            result = re.search(r'(([01]{0,1}\d{0,1}\d|2[0-4]\d|25[0-5])\.){3}([01]{0,1}\d{0,1}\d|2[0-4]\d|25[0-5])', url)
-            if result:
-                url = result.group()
-                http_url = url_parse(url).get_http_url()  #
-                yield http_url
 
-            elif url.startswith('http'):
-                yield url
 
-            else:
-                # 判断域名是否已经扫描过，包括含有http这类的链接
-                scanned_status = False
-                compile = '^[http://|https://]*' + url
-                for u in self.scanned_domains:
-                    if re.findall(compile,u):
-                        print("{} had in scanned_domains list .".format(url))
-                        scanned_status = True
-                        break
 
-                if scanned_status :
-                    continue
-
-                # 判断是否是二级域名，
-                if url.count('.') >= 2:
-                    is_subdomain = True
-                    for suffix in [".com.cn", ".edu.cn", ".net.cn", ".org.cn", ".co.jp",".gov.cn", ".co.uk", "ac.cn",]:
-                        if suffix in url :
-                            is_subdomain = False
-                            break
-
-                    # 二级域名的话跳过，不再爆破三级域名
-                    if is_subdomain :
-                        yield url_parse(url).get_http_url()
-                        continue
-
-                # 域名当作url先扫描
-                yield url_parse(url).get_http_url()
-
-                # 遍历子域名并扫描
-                domains_list = OneForAll(url).scan()
-                domains_list = sorted(set(domains_list), key=domains_list.index)  # 去重 保持顺序
-                for domains in domains_list:
-                    http_url = url_parse(domains).get_http_url()  #
-                    yield http_url
-                    continue
-
-    def init_report(self):
-        from .setting import TEMPLATE_FILE
-        from .setting import TOOLS_REPORT_FILE
-
-        if not os.path.exists(TOOLS_REPORT_FILE):
-            with open(TOOLS_REPORT_FILE, 'w+') as w:
-                with open(TEMPLATE_FILE, 'r') as r:
-                    w.write(r.read())
-
-    def restore(self):
-        main_path = os.path.split(os.path.dirname(os.path.realpath(__file__)))[0]
-        restore_path = os.path.join(main_path,'.restore')
-        if not os.path.exists(restore_path):
-            exit('not found .restore file')
-
-        with open(restore_path,'r') as f: # 判断域名情况
-            url = f.read()
-            return url
 
 

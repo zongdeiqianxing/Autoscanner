@@ -1,0 +1,227 @@
+from func_timeout import func_set_timeout
+import func_timeout
+import os
+import re
+import csv
+import logging.config
+import simplejson
+import subprocess
+import requests
+import tempfile
+import threading
+import sqlite3
+import time
+
+now_time = time.strftime("%Y%m%d-%H%M%S", time.localtime(time.time()))
+main_path = os.path.split(os.path.dirname(os.path.realpath(__file__)))[0]
+logging.config.fileConfig(os.path.join(main_path, "config/logging.ini"))
+tool_path = os.path.join(main_path,'tools')
+XRAY_LISTEN_PORT = 7777                                 # 改动的话需要注意controller里面crawlergo推送也要改
+
+
+class Tools:
+    def __init__(self, command, logfile):
+        self.command = command
+        self.logfile = logfile
+        self.log = None
+        self.data = None
+        self.logger = logging.getLogger('toolConsole')
+
+        try:
+            self.scan()
+        except func_timeout.exceptions.FunctionTimedOut:
+            self.logger.error(self.__class__.__name__ + ' - ' + 'TimeoutError')
+
+        self.filter_log()
+
+    @func_set_timeout(300)
+    def scan(self):
+        try:
+            if not self.logfile:
+                self.log = os.popen(self.command).read()
+            else:
+                os.popen(self.command,'w')
+                self.read_report_file()
+        except Exception as e:
+            self.logger.error(self.__class__.__name__ + ' - ' + str(e))
+
+        self.logger.info(self.__class__.__name__ + ' - ' + ' scanned over ! ')
+
+    def read_report_file(self):
+        if self.logfile and os.path.exists(self.logfile):
+            with open(self.logfile) as f:
+                self.log = f.read()
+
+    # 赋予子类工具使用，用于处理筛选日志文件，并赋予self.data返回
+    def filter_log(self):
+        pass
+
+    # 需要在main.py中创建列，在controller中调用
+    # def db_insert_log(self):
+    #     if self.log:
+    #         with sqlite3.connect('../scanned_info.db') as conn:
+    #             sql = 'update scanned_info set {}=? where id=max(id)'.format(self.__class__.__name__)
+    #             conn.execute(sql, tuple([self.log]))
+
+
+'''
+oneforall 
+扫描所有子域名并筛选去重出所有子域名
+'''
+class Oneforall(Tools):
+    def filter_log(self):
+        try:
+            if self.logfile and os.path.exists(self.logfile):
+                with open(self.logfile, 'r') as csvfile:
+                    reader = csv.reader(csvfile.__next__())
+                    column = [row[5] for row in reader]
+                    self.data = list(set(column))
+        except Exception as e:
+            print(e)
+
+    # def db_insert_log(self):
+    #     if self.log:
+    #         with sqlite3.connect('../scanned_info.db') as conn:
+    #             sql = 'update target_info set {}=? where id=max(id)'.format(self.__class__.__name__)
+    #             conn.execute(sql, tuple([self.log]))
+    # 看看是不是可以把sql替换掉
+
+
+'''
+masscan
+调用self.data获取返回的ports list
+masscan 只接收ip作为target
+'''
+class Masscan(Tools):
+    def filter_log(self):
+        ports = re.findall('\d{1,5}/tcp', self.log)
+        self.data = [x[:-4] for x in ports]
+
+
+'''
+nmap
+遍历所有http https端口
+'''
+class Nmap(Tools):
+    def filter_log(self):
+        http_ports = re.findall('\d{1,5}/tcp\s{1,}open\s{1,}[ssl/]*http', self.log)
+        http_ports = [int(x.split("/")[0]) for x in http_ports]
+        self.data = http_ports
+
+
+'''
+whatweb
+'''
+class Whatweb(Tools):
+    pass
+
+
+'''
+crawlergo
+发现的子域名将在controller模块中动态去重添加进入扫描
+'''
+class Crawlergo(Tools):
+    @func_set_timeout(300)
+    def scan(self):
+        try:
+            # cmd = [crawlergo, "-c", self.BROWERS, "-t", "5", "-f", "smart", "--push-to-proxy", self.XRAY_PROXY, "--push-pool-max", "10", "--fuzz-path", "-o", "json", self.target]
+            rsp = subprocess.Popen(self.command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            output, error = rsp.communicate()
+            result = simplejson.loads(output.decode().split("--[Mission Complete]--")[1])
+            req_list = result["req_list"]
+            urls = []
+            for req in req_list:
+                # print("crawlergo found :", req['url'])
+                urls.append(req['url'])
+
+            subdomains = result["sub_domain_list"]
+            self.data = subdomains
+            self.log = urls + ['\n'*2] + subdomains
+        except Exception as e:
+            self.logger.error(self.__class__.__name__ + ' - ' + str(e))
+
+        self.logger.info(self.__class__.__name__ + ' - ' + ' scanned over ! ')
+
+
+class Xray:
+    def __init__(self):
+        # 这儿要考虑tempfile怎么删除
+        self.logfile = os.path.join(main_path,'/report/{}-xray.html'.format(now_time))
+        self.backup_file = tempfile.NamedTemporaryFile(delete=False).name
+        self.proxy = '127.0.0.1:{}'.format(XRAY_LISTEN_PORT)
+        self.kill_exists_process()
+
+    def scan(self):
+        t = threading.Thread(target=self.xray_run, daemon=True)
+        t.start()
+
+    def xray_run(self):
+        _ = "{path}/tools/xray_linux_amd64 webscan --listen {proxy} --html-output {logfile} | tee -a {backup_file}"\
+                        .format(path=main_path, proxy=self.proxy, logfile=self.logfile, backup_file=self.backup_file)
+        os.system(_)
+
+    def wait_xray_ok(self):
+        _ = "tail -n 10 {}".format(self.backup_file)
+        s = os.popen(_).read()
+
+        # {{0}} 需要这样来转义大括号，结果为{0}字符串
+        if "All pending requests have been scanned" in s:
+            __ = '''
+                    wc {0} | awk '{{print $1}}';
+                    sleep 5;
+                    wc {0} | awk '{{print $1}}';
+                '''.format(self.backup_file)
+            result = os.popen(__).read()
+            if result.split('\n')[0] == result.split('\n')[1]:
+                print('xray end scan')
+                os.system('echo "" > {}'.format(self.backup_file))
+            return True
+        else:
+            return False
+
+    def kill_exists_process(self):
+        process = os.popen("ps aux | grep 'xray' | awk '{print $2}'").read()
+        os.system('kill -9 {}'.format(process.replace('\n', ' ')))
+
+
+'''
+dirsearch v0.4.1
+'''
+class Dirsearch(Tools):
+    def read_report_file(self):
+        self.log = []
+        self.data = []
+        with open(self.logfile, 'r') as f:
+            lines = f.readlines()
+            lines.pop(0)
+
+            for line in lines:
+                line = line.strip().split(',')
+                try:
+                    s = "{:<}  - {:>5}B  -  {:<5}".format(line[2], line[3], line[1])
+                    self.log.append(s)
+                    self.data.append(line[1])
+                except Exception :
+                    continue
+                finally:
+                    self.kill_residual_process()
+
+    def kill_residual_process(self):
+        process = os.popen("ps aux | grep 'dirsearch' | awk '{print $2}'").read()
+        os.system('kill -9 {}'.format(process.replace('\n', ' ')))
+
+
+class Request:
+    def __init__(self,):
+        self.proxy = {'http': 'http://127.0.0.1:{}'.format(XRAY_LISTEN_PORT),
+                      'https': 'http://127.0.0.1:{}'.format(XRAY_LISTEN_PORT)}
+        self.headers = {'User-Agent': 'Mozilla/5.0 (Windows NT 6.1; WOW64; rv:27.0) Gecko/20100101 Firefox/27.0)',
+                      }
+
+    def repeat(self, url):
+        try:
+            response = requests.get(url=url, headers=self.headers, proxies=self.proxy, verify=False, timeout=20)
+            # print(response)
+            return response
+        except Exception as e:
+            print(e)

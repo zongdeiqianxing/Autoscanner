@@ -1,41 +1,38 @@
-import os
 from urllib.parse import urlparse
+import os
 import socket
 import json
 import xlrd
 
 
-class read_xls():
-    def __init__(self,file):
-        self.base_str = list('abcdefghijklmnopqrstuvwxyz.-_')
+class read_xls:
+    def __init__(self, file):
+        self.base_str = list('0123456789abcdefghijklmnopqrstuvwxyz.-_')
         self.domains = self.read_xls(file)
 
-    def read_xls(self,file):
+    def read_xls(self, file):
         try:
             workbook = xlrd.open_workbook(file)
             sheet1 = workbook.sheet_by_index(0)
             column = sheet1.col_values(3)
+            return self.filter(column)
         except Exception as e:
             exit(e)
-        return  self.filter(column)
 
-    def filter(self,domains):
+    def filter(self, domains):
         domains_filterd = []
         for domain in domains:
             if domain is None:
                 break
-
             if ';' in domain:
                 domain = domain.split(';')[0]
-
             # 判断域名内容是否标准，比如是否存在中文
             if not set(list(domain)) < set(self.base_str):
                 print('domain {} 不规范，忽略'.format(domain))
                 continue
-
             if not len(domain) < 3:
                 domains_filterd.append(domain)
-        return domains_filterd
+        return sorted(set(domains_filterd), key=domains_filterd.index)
 
 class Run():
     def __init__(self,command,logfile='',delete_file=True):
@@ -109,13 +106,10 @@ def get_ip_from_url(http_url):
 
 def get_file_content(file_path):
     if not os.path.exists(file_path):
-        print("the file path is not correct")
+        exit("not found file:{}".format(file_path))
 
-    urlList = []
-    with open(file_path,'r') as f:
-        for line in f.readlines():
-            urlList.append(line.strip())
-    return urlList
+    with open(file_path, 'r') as f:
+        return [line.strip() for line in f.readlines()]
 
 
 def dir_is_exists_or_create(*dir_path):
@@ -137,7 +131,7 @@ def check_dict_key_vaild(dict,*keys):
 
 def path_build(*path):
     main_path = os.path.split(os.path.dirname(os.path.realpath(__file__)))[0]
-    path = os.path.join(main_path,*path)
+    path = os.path.join(main_path, *path)
     return path
 
 
