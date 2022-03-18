@@ -360,7 +360,7 @@ class Xray:
         def xray_passive():
             cmd = "{path}/tools/xray_linux_amd64/xray_linux_amd64 webscan --listen {proxy} --html-output {logfile} | tee -a {backup_file}"\
                 .format(path=main_path, proxy=self.proxy, logfile=self.logfile, backup_file=self.backup_file)
-            os.popen(cmd)
+            os.system(cmd)
 
         t = threading.Thread(target=xray_passive, daemon=True)
         t.start()
