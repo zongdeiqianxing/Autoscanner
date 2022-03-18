@@ -25,10 +25,8 @@ AutoScanner对工具之间的调用衔接做了很多处理，及对渗透测试
 ### 0x03 执行项目
 - docker运行命令参数已放入docker_run.sh文件中，直接修改执行`./docker_run.sh`即可  
 - 其中支持参数为：
-    + -u url
     + -d domain
-    + --fu 包含urls的文件
-    + --fd 包含domains的文件
+    + -f 包含domains的文件
     + --fq 从企查查导出的企业备案域名xls文件
 
 ### 0x04 报告查看
