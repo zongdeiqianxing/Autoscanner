@@ -1,0 +1,15 @@
+tools
+config.yaml
+ca.key
+ca.crt
+.DS_Store
+.idea
+.git
+.idea
+.local
+venv
+report
+test.py
+test2.py
+test3.py
+scanned_info.db
