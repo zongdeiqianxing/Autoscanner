@@ -5,6 +5,7 @@ ENV TZ=Asia/Shanghai
 ENV LANG C.UTF-8
 ENV DEBIAN_FRONTEND=noninteractive
 
+# curl -fsSL https://dl.google.com/linux/linux_signing_key.pub  | apt-key add - \
 RUN sed -i s@/archive.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list \
 && sed -i s/security.ubuntu.com/mirrors.aliyun.com/g /etc/apt/sources.list \
 && apt-get clean \
