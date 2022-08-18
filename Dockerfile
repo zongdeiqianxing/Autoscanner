@@ -6,6 +6,7 @@ ENV LANG C.UTF-8
 ENV DEBIAN_FRONTEND=noninteractive
 
 # curl -fsSL https://dl.google.com/linux/linux_signing_key.pub  | apt-key add - \
+# 如果chrome安装后执行失败，更换chromedrive版本，操作就是将下面url的版本更换为最新版本
 RUN sed -i s@/archive.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list \
 && sed -i s/security.ubuntu.com/mirrors.aliyun.com/g /etc/apt/sources.list \
 && apt-get clean \
