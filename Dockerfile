@@ -17,25 +17,11 @@ RUN sed -i s@/archive.ubuntu.com/@/mirrors.aliyun.com/@g /etc/apt/sources.list \
 && wget http://npm.taobao.org/mirrors/chromedriver/70.0.3538.16/chromedriver_linux64.zip -O /tmp/chrome.zip \
 && unzip -d /opt /tmp/chrome.zip \
 && ln -fs /opt/chromedriver /usr/local/bin/chromedriver \
-&& wget https://golang.google.cn/dl/go1.17.linux-amd64.tar.gz \
-&& tar -xvf go1.17.linux-amd64.tar.gz -C /usr/local/ \
 && apt update
-
-
-ENV GOROOT="/usr/local/go"
-ENV PATH="${PATH}:${GOROOT}/bin"
-ENV PATH="${PATH}:${GOPATH}/bin"
-ENV GOPATH=$HOME/go
-ENV PATH="${PATH}:${GOROOT}/bin:${GOPATH}/bin"
-
 
 ADD . /root
 WORKDIR /root/
 COPY config/SIMSUN.TTC /usr/share/fonts/ttf-dejavu/SIMSUN.TTC
-
-
-RUN go env -w GOPROXY=https://goproxy.cn,direct \
-&& GO111MODULE=on go install -v github.com/projectdiscovery/nuclei/v2/cmd/nuclei@latest
 
 RUN ln -sf /usr/share/zoneinfo/$TZ /etc/localtime \
 && echo $TZ > /etc/timezone \
